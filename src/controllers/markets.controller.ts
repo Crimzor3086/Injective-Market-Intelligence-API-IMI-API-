@@ -83,133 +83,168 @@ async function buildSummary(
 }
 
 export async function listMarkets(request: FastifyRequest, reply: FastifyReply) {
-  const markets = await injectiveService.getMarkets();
-  return reply.send({ items: markets, count: markets.length });
+  try {
+    const markets = await injectiveService.getMarkets();
+    return reply.send({ items: markets, count: markets.length });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch markets.' });
+  }
 }
 
 export async function listActiveMarkets(
   request: FastifyRequest<{ Querystring: { window?: string; limit?: string } }>,
   reply: FastifyReply
 ) {
-  const window = parseWindow(request.query.window);
-  const limit = parseLimit(request.query.limit);
-  const markets = await injectiveService.getMarkets();
+  try {
+    const window = parseWindow(request.query.window);
+    const limit = parseLimit(request.query.limit);
+    const markets = await injectiveService.getMarkets();
 
-  const ranked = await Promise.all(
-    markets.map(async (market) => {
-      const trades = await injectiveService.getRecentTrades(market.id, 120);
-      const activity = computeActivityMetrics(trades);
-      return {
-        market_id: market.id,
-        symbol: market.symbol,
-        activity_score: activity.score
-      };
-    })
-  );
+    const ranked = await Promise.all(
+      markets.map(async (market) => {
+        const trades = await injectiveService.getRecentTrades(market.id, 120);
+        const activity = computeActivityMetrics(trades);
+        return {
+          market_id: market.id,
+          symbol: market.symbol,
+          activity_score: activity.score
+        };
+      })
+    );
 
-  ranked.sort((a, b) => b.activity_score - a.activity_score);
+    ranked.sort((a, b) => b.activity_score - a.activity_score);
 
-  return reply.send({
-    timestamp: toIsoTimestamp(),
-    window,
-    items: ranked.slice(0, limit),
-    count: ranked.length
-  });
+    return reply.send({
+      timestamp: toIsoTimestamp(),
+      window,
+      items: ranked.slice(0, limit),
+      count: ranked.length
+    });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch active markets.' });
+  }
 }
 
 export async function getMarketSummary(
   request: FastifyRequest<{ Params: { id: string }; Querystring: { window?: string; lookback?: string } }>,
   reply: FastifyReply
 ) {
-  const window = parseWindow(request.query.window);
-  const lookback = parseLookback(request.query.lookback);
-  const summary = await buildSummary(request.params.id, window, lookback);
+  try {
+    const window = parseWindow(request.query.window);
+    const lookback = parseLookback(request.query.lookback);
+    const summary = await buildSummary(request.params.id, window, lookback);
 
-  if (!summary) {
-    return reply.code(404).send({ error: 'Market not found.' });
+    if (!summary) {
+      return reply.code(404).send({ error: 'Market not found.' });
+    }
+
+    return reply.send(summary);
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch market summary.' });
   }
-
-  return reply.send(summary);
 }
 
 export async function getLiquidity(
   request: FastifyRequest<{ Params: { id: string }; Querystring: { window?: string; lookback?: string } }>,
   reply: FastifyReply
 ) {
-  const window = parseWindow(request.query.window);
-  const lookback = parseLookback(request.query.lookback);
-  const summary = await buildSummary(request.params.id, window, lookback);
+  try {
+    const window = parseWindow(request.query.window);
+    const lookback = parseLookback(request.query.lookback);
+    const summary = await buildSummary(request.params.id, window, lookback);
 
-  if (!summary) {
-    return reply.code(404).send({ error: 'Market not found.' });
+    if (!summary) {
+      return reply.code(404).send({ error: 'Market not found.' });
+    }
+
+    return reply.send({
+      ...summary,
+      metrics: summary.metrics.liquidity
+    });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch liquidity metrics.' });
   }
-
-  return reply.send({
-    ...summary,
-    metrics: summary.metrics.liquidity
-  });
 }
 
 export async function getVolatility(
   request: FastifyRequest<{ Params: { id: string }; Querystring: { window?: string; lookback?: string } }>,
   reply: FastifyReply
 ) {
-  const window = parseWindow(request.query.window);
-  const lookback = parseLookback(request.query.lookback);
-  const summary = await buildSummary(request.params.id, window, lookback);
+  try {
+    const window = parseWindow(request.query.window);
+    const lookback = parseLookback(request.query.lookback);
+    const summary = await buildSummary(request.params.id, window, lookback);
 
-  if (!summary) {
-    return reply.code(404).send({ error: 'Market not found.' });
+    if (!summary) {
+      return reply.code(404).send({ error: 'Market not found.' });
+    }
+
+    return reply.send({
+      ...summary,
+      metrics: summary.metrics.volatility
+    });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch volatility metrics.' });
   }
-
-  return reply.send({
-    ...summary,
-    metrics: summary.metrics.volatility
-  });
 }
 
 export async function getHealth(
   request: FastifyRequest<{ Params: { id: string }; Querystring: { window?: string; lookback?: string } }>,
   reply: FastifyReply
 ) {
-  const window = parseWindow(request.query.window);
-  const lookback = parseLookback(request.query.lookback);
-  const summary = await buildSummary(request.params.id, window, lookback);
+  try {
+    const window = parseWindow(request.query.window);
+    const lookback = parseLookback(request.query.lookback);
+    const summary = await buildSummary(request.params.id, window, lookback);
 
-  if (!summary) {
-    return reply.code(404).send({ error: 'Market not found.' });
+    if (!summary) {
+      return reply.code(404).send({ error: 'Market not found.' });
+    }
+
+    return reply.send({
+      ...summary,
+      metrics: summary.metrics.health
+    });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch health metrics.' });
   }
-
-  return reply.send({
-    ...summary,
-    metrics: summary.metrics.health
-  });
 }
 
 export async function getInsights(
   request: FastifyRequest<{ Params: { id: string }; Querystring: { window?: string; lookback?: string } }>,
   reply: FastifyReply
 ) {
-  const window = parseWindow(request.query.window);
-  const lookback = parseLookback(request.query.lookback);
-  const summary = await buildSummary(request.params.id, window, lookback);
+  try {
+    const window = parseWindow(request.query.window);
+    const lookback = parseLookback(request.query.lookback);
+    const summary = await buildSummary(request.params.id, window, lookback);
 
-  if (!summary) {
-    return reply.code(404).send({ error: 'Market not found.' });
+    if (!summary) {
+      return reply.code(404).send({ error: 'Market not found.' });
+    }
+
+    const insights = summary.signals.map(
+      (signal) => `${signal.level.toUpperCase()}: ${signal.message}`
+    );
+
+    return reply.send({
+      market_id: summary.market_id,
+      symbol: summary.symbol,
+      timestamp: summary.timestamp,
+      window: summary.window,
+      metrics: {
+        insights
+      },
+      signals: summary.signals
+    });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Failed to fetch market insights.' });
   }
-
-  const insights = summary.signals.map(
-    (signal) => `${signal.level.toUpperCase()}: ${signal.message}`
-  );
-
-  return reply.send({
-    market_id: summary.market_id,
-    symbol: summary.symbol,
-    timestamp: summary.timestamp,
-    window: summary.window,
-    metrics: {
-      insights
-    },
-    signals: summary.signals
-  });
 }

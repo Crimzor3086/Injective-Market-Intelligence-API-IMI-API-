@@ -10,7 +10,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   },
-  "include": ["src", "scripts", "tests"]
+  "include": ["src", "scripts", "tests"],
+  "exclude": ["node_modules", "dist"]
 }

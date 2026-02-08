@@ -1,0 +1,72 @@
+{
+  "dashboard": {
+    "title": "Injective API Monitoring",
+    "tags": ["injective", "api", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Call Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "api_metrics_success_rate",
+            "legendFormat": "Success Rate"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Total API Calls",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "api_metrics_total_calls",
+            "legendFormat": "Total Calls"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Average Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "api_metrics_avg_response_time_ms",
+            "legendFormat": "Response Time (ms)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "API Failures",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "api_metrics_failure_count",
+            "legendFormat": "Failures"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Endpoint Statistics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "api_metrics_endpoint_stats",
+            "legendFormat": "{{endpoint}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 27,
+    "version": 1
+  }
+}

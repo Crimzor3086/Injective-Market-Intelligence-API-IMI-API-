@@ -1,0 +1,13 @@
+# Prometheus configuration for Injective API monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'injective-api'
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets: ['localhost:3000']
+        labels:
+          environment: 'production'
+          service: 'injective-api'

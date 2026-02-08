@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: injective-api
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - INJECTIVE_API_URL=${INJECTIVE_API_URL:-https://api.injective.exchange}
+      - INJECTIVE_API_TIMEOUT_MS=${INJECTIVE_API_TIMEOUT_MS:-10000}
+      - INJECTIVE_API_CACHE_TTL_MS=${INJECTIVE_API_CACHE_TTL_MS:-5000}
+      - INJECTIVE_API_RATE_LIMIT_PER_MINUTE=${INJECTIVE_API_RATE_LIMIT_PER_MINUTE:-60}
+      - ENABLE_API_METRICS=${ENABLE_API_METRICS:-true}
+      - CACHE_TTL_MS=${CACHE_TTL_MS:-10000}
+      - BASELINE_WINDOW=${BASELINE_WINDOW:-7d}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - injective-network
+
+networks:
+  injective-network:
+    driver: bridge
